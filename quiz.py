@@ -5,10 +5,6 @@
 
 from __future__ import print_function
 
-import os
-import pickle
-
-import datetime
 
 import psycopg2
 import hashlib
@@ -156,7 +152,7 @@ class StudentProgress(dict):
     reading and writing out to disk.
     """
 
-    ANSWER_FILE_PATH = 'answers.sql'
+    ANSWER_FILE_PATH = "answers.sql"
     PROBLEM_SPLIT = "\n\n\n==========\n"
 
     def __init__(self):
@@ -169,7 +165,7 @@ class StudentProgress(dict):
         if not os.path.isfile(self.ANSWER_FILE_PATH):
             return
 
-        with open(self.ANSWER_FILE_PATH, 'r') as f:
+        with open(self.ANSWER_FILE_PATH, "r") as f:
             for problem in f.read().split(self.PROBLEM_SPLIT):
                 if not problem:
                     continue
@@ -181,9 +177,10 @@ class StudentProgress(dict):
     def save_answers(self):
         """Save student answers to a file."""
 
-        with open(self.ANSWER_FILE_PATH, 'w') as f:
-            f.write(self.PROBLEM_SPLIT.join(
-                    v.to_string() for k, v in sorted(self.items())))
+        with open(self.ANSWER_FILE_PATH, "w") as f:
+            f.write(
+                self.PROBLEM_SPLIT.join(v.to_string() for k, v in sorted(self.items()))
+            )
 
         log.info("Saved {} answers".format(len(self)))
 
@@ -201,7 +198,7 @@ class Database(object):
     """
 
     def __init__(self):
-        self.cursor, self.conn  = self.connect()
+        self.cursor, self.conn = self.connect()
 
     @staticmethod
     def connect():
@@ -232,20 +229,24 @@ class Database(object):
         # Make dictionary of column-name, length-of-column
         cols = []
         for col in description:
-            cols.append({'name': col.name,
-                         'len': max(len(col.name), COL_TYPE_TO_LEN.get(col.type_code, 10))})
+            cols.append(
+                {
+                    "name": col.name,
+                    "len": max(len(col.name), COL_TYPE_TO_LEN.get(col.type_code, 10)),
+                }
+            )
 
         # Figure out the maximum length of the data in a column
         for row in results[:MAX_ROWS]:
             for i, col in enumerate(row):
                 if isinstance(col, str):
-                    cols[i]['len'] = max(cols[i]['len'], len(col))
+                    cols[i]["len"] = max(cols[i]["len"], len(col))
 
         out = "\n"
 
         # Print column names
         for i, col in enumerate(cols):
-            out += " " + ("{:^" + str(col['len']) + "}").format(col['name']) + " "
+            out += " " + ("{:^" + str(col["len"]) + "}").format(col["name"]) + " "
             if i == len(cols) - 1:
                 out += "\n"
             else:
@@ -253,7 +254,7 @@ class Database(object):
 
         # Print border below column names
         for i, col in enumerate(cols):
-            out += "-" * (col['len'] + 2)
+            out += "-" * (col["len"] + 2)
             if i == len(cols) - 1:
                 out += "\n"
             else:
@@ -271,7 +272,7 @@ class Database(object):
                 if isinstance(col, datetime.date):
                     col = col.strftime("%Y-%m-%d")
 
-                out += " " + ("{:" + str(cols[i]['len']) + "}").format(col) + " "
+                out += " " + ("{:" + str(cols[i]["len"]) + "}").format(col) + " "
                 if i == len(cols) - 1:
                     out += "\n"
                 else:
@@ -281,7 +282,9 @@ class Database(object):
         if len(results) <= MAX_ROWS:
             out += "({} rows)".format(len(results))
         else:
-            out += "({} rows, truncated for display at {})".format(len(results), MAX_ROWS)
+            out += "({} rows, truncated for display at {})".format(
+                len(results), MAX_ROWS
+            )
 
         return out
 
@@ -369,15 +372,17 @@ class SQLQuiz(object):
     def read_problems():
         """Read problems off disk."""
 
-        with open(PROBLEM_FILE_PATH, 'rb') as f:
+        with open(PROBLEM_FILE_PATH, "rb") as f:
             return pickle.load(f)
 
     def play(self):
         """Play quiz."""
 
         if len(self.progress) == len(self.problems):
-            return self.exit("You've already answered all the questions." +
-                             "Remove answers.sql to redo the exercise.")
+            return self.exit(
+                "You've already answered all the questions."
+                + "Remove answers.sql to redo the exercise."
+            )
 
         print(INTRO)
         input("Press RETURN to start> ")
@@ -521,7 +526,7 @@ def write_pickle():
         problem.solution = None
         problems.append(problem)
 
-    with open(PROBLEM_FILE_PATH, 'bw') as f:
+    with open(PROBLEM_FILE_PATH, "bw") as f:
         pickle.dump(problems, f)
 
 
